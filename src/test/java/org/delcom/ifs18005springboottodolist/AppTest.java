@@ -36,7 +36,7 @@ class AppTest {
     }
 
     @Test
-    void mainDelegatesToSpringApplicationRun() {
+    void mainDelegatesToSpringApplicationRun() throws Exception {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         try (MockedStatic<SpringApplication> mocked = mockStatic(SpringApplication.class)) {
             mocked.when(() -> SpringApplication.run(

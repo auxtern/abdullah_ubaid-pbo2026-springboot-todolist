@@ -78,26 +78,15 @@ java -jar target\ifs18005-springboot-todolist-0.0.1-SNAPSHOT.jar
 .\mvnw.cmd clean package -Pproduction
 ```
 
-## Konfigurasi (`src/main/resources/application.yaml`)
+## Konfigurasi port (`.env`)
 
-```yaml
-spring:
-  application:
-    name: ifs18005-springboot-todolist
-  devtools:
-    restart:
-      enabled: true
-    liveload:
-      enabled: true
+Salin `.env.example` menjadi `.env` lalu atur port:
 
-server:
-  port: 8080
-
-vaadin:
-  launch-browser: false
-  liveReload:
-    enabled: true
+```env
+APP_PORT=8080
 ```
+
+`application.yaml` memakai `server.port: ${APP_PORT:8080}` (default 8080 jika `.env` tidak ada).
 
 ## Fitur UI
 
