@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: ifs18005-springboot-todolist
+  devtools:
+    restart:
+      enabled: true
+      # Polling lebih andal di Windows daripada native file watch.
+      poll-interval: 1s
+      quiet-period: 400ms
+    liveload:
+      enabled: true
+
+server:
+  port: 8080
+
+vaadin:
+  launch-browser: false
+  liveReload:
+    enabled: true
