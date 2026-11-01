@@ -1,88 +1,91 @@
 # ifs18005-springboot-todolist
 
-Aplikasi web Todo List berbasis **Spring Boot**, **Maven**, dan **Vaadin**, dengan arsitektur Clean Architecture dari proyek referensi konsol (`ifs18005-java-exception-generic/todo-list`).
+Aplikasi web Todo List berbasis **Spring Boot**, **Maven**, dan **Vaadin**, dengan arsitektur **Clean Architecture**.
 
-Data disimpan **in-memory** (belum memakai database). Konfigurasi memakai `application.yaml`.
+Data disimpan **in-memory** (belum memakai database). Port dikonfigurasi lewat `.env` (`APP_PORT`).
+
+> **Penamaan proyek mahasiswa:** `{username}-springboot-todolist`  
+> **Package:** `org.delcom.{username}springboottodolist`  
+> Contoh di repo ini memakai username `ifs18005`. Ganti sesuai username Anda.
 
 ## Prasyarat
 
 - JDK 25
-- Maven Wrapper (`mvnw` / `mvnw.cmd`) sudah tersedia di proyek
+- Maven Wrapper (`mvnw` / `mvnw.cmd`)
 
 ## Struktur Layer
 
 ```text
-src/main/java/org/delcom/ifs18005springboottodolist/
-├── domain/          # Entity, exception, repository port
-├── usecase/         # TodoUseCase
-├── adapter/         # InMemoryRepository, TodoRepository, TodoPresenter
-├── framework/view/  # TodoView (Vaadin UI)
-├── config/          # AppConfig (composition root Spring)
-└── App.java
+ifs18005-springboot-todolist/
+├── .env / .env.example
+├── pom.xml
+├── src/main/java/org/delcom/ifs18005springboottodolist/
+│   ├── App.java              # entry point (@SpringBootApplication)
+│   ├── DotEnv.java           # muat .env ke system properties
+│   ├── config/AppConfig.java # composition root Spring (@Bean)
+│   ├── domain/               # entity, exception, repository port
+│   ├── usecase/              # TodoUseCase
+│   ├── adapter/              # InMemoryRepository, TodoRepository, TodoPresenter
+│   └── framework/view/       # TodoView (Vaadin)
+├── src/main/resources/
+│   └── application.yaml
+└── src/test/java/.../
+    └── AppTest.java
 ```
+
+## Konfigurasi port (`.env`)
+
+```env
+APP_PORT=8080
+```
+
+`application.yaml` memakai:
+
+```yaml
+server:
+  port: ${APP_PORT:8080}
+```
+
+Salin dari `.env.example` jika `.env` belum ada. File `.env` diabaikan git.
 
 ## Perintah Build & Menjalankan
 
-### 1. Build proyek
-
-```powershell
-.\mvnw.cmd clean package
-```
-
-### 2. Build + uji + cek coverage Jacoco 100%
-
-```powershell
-.\mvnw.cmd clean verify
-```
-
-Laporan coverage: `target/site/jacoco/index.html`
-
-### 3. Menjalankan aplikasi (Spring Boot DevTools)
-
-**Spring Boot DevTools** sudah aktif: aplikasi auto-restart + browser live-reload setelah class ter-compile ulang.
-
-**Opsi A — dari Cursor (disarankan)**  
-1. Pasang **Extension Pack for Java**  
-2. Pastikan `java.autobuild.enabled` aktif (sudah di `.vscode/settings.json`)  
-3. Jalankan konfigurasi **TodoList (DevTools)** dari Run and Debug  
-4. Simpan file `.java` / resource → autobuild menulis ke `target/classes` → DevTools restart
-
-**Opsi B — Maven**
+### 1. Development (disarankan)
 
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-Kalau autobuild IDE tidak jalan, pakai watcher compile:
+Atau dari Cursor/VS Code: Run and Debug → **TodoList (DevTools)**.
+
+Buka [http://localhost:8080](http://localhost:8080) (atau port di `APP_PORT`).
+
+Spring Boot DevTools aktif: simpan file → compile → auto-restart + live-reload.
+
+Kalau autobuild IDE tidak jalan:
 
 ```powershell
 .\dev.ps1
 ```
 
-Buka browser: [http://localhost:8080](http://localhost:8080)
+### 2. Uji + coverage Jacoco 100%
 
-Ringkas alurnya: **edit → compile → DevTools restart → LiveReload browser**.
+```powershell
+.\mvnw.cmd clean verify
+```
 
-### 4. Build & jalankan JAR (wajib `-Pproduction`)
+Laporan: `target/site/jacoco/index.html`
 
-Vaadin di JAR butuh frontend production. Tanpa `-Pproduction`, `java -jar` gagal dengan error `vaadin-dev-server not found`.
+### 3. Build & jalankan JAR (wajib `-Pproduction`)
+
+Tanpa `-Pproduction`, `java -jar` gagal (`vaadin-dev-server not found`) karena `vaadin-dev` tidak ikut ke JAR.
 
 ```powershell
 .\mvnw.cmd clean package -Pproduction
 java -jar target\ifs18005-springboot-todolist-0.0.1-SNAPSHOT.jar
 ```
 
-> Catatan: `vaadin-dev` dan DevTools **tidak** ikut ke JAR (`optional` / `excludeDevtools=true`). Untuk development sehari-hari pakai `spring-boot:run`, bukan `java -jar`.
-
-## Konfigurasi port (`.env`)
-
-Salin `.env.example` menjadi `.env` lalu atur port:
-
-```env
-APP_PORT=8080
-```
-
-`application.yaml` memakai `server.port: ${APP_PORT:8080}` (default 8080 jika `.env` tidak ada).
+Jalankan dari root proyek agar file `.env` terbaca.
 
 ## Fitur UI
 
