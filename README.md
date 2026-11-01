@@ -63,20 +63,16 @@ Buka browser: [http://localhost:8080](http://localhost:8080)
 
 Ringkas alurnya: **edit → compile → DevTools restart → LiveReload browser**.
 
-### 4. Menjalankan JAR hasil build
+### 4. Build & jalankan JAR (wajib `-Pproduction`)
 
-```powershell
-.\mvnw.cmd clean package
-java -jar target\ifs18005-springboot-todolist-0.0.1-SNAPSHOT.jar
-```
-
-> Catatan: DevTools **tidak** ikut ke dalam JAR production (`excludeDevtools=true`).
-
-### 5. Build production (frontend Vaadin dioptimasi)
+Vaadin di JAR butuh frontend production. Tanpa `-Pproduction`, `java -jar` gagal dengan error `vaadin-dev-server not found`.
 
 ```powershell
 .\mvnw.cmd clean package -Pproduction
+java -jar target\ifs18005-springboot-todolist-0.0.1-SNAPSHOT.jar
 ```
+
+> Catatan: `vaadin-dev` dan DevTools **tidak** ikut ke JAR (`optional` / `excludeDevtools=true`). Untuk development sehari-hari pakai `spring-boot:run`, bukan `java -jar`.
 
 ## Konfigurasi port (`.env`)
 
