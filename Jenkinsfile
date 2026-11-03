@@ -12,6 +12,8 @@ pipeline {
     environment {
         MAVEN_OPTS = '-Xmx2g'
         JAVA_TOOL_OPTIONS = '-Dfile.encoding=UTF-8'
+        // Cache Maven bersama di volume Jenkins, persist antar build/job
+        MAVEN_LOCAL_REPO = '/var/jenkins_home/.m2/repository'
     }
 
     stages {
@@ -60,9 +62,9 @@ pipeline {
                     echo "=== Maven Clean Verify (Jacoco 100%) ==="
                     # verify = test + jacoco:check (instruction/branch/line/method/class = 100%)
                     # -Pproduction = Vaadin frontend production build saat package
-                    # repo lokal di workspace agar Trivy stage bisa reuse (hindari 429 Maven Central)
+                    # cache Maven persisten agar tidak download ulang (hindari 429 Maven Central)
                     ./mvnw -B clean verify -Pproduction \
-                        -Dmaven.repo.local="$PWD/.m2/repository"
+                        -Dmaven.repo.local="$MAVEN_LOCAL_REPO"
 
                     echo "=== Build & Tests Passed ==="
                     ls -lh target/*.jar || true
@@ -105,12 +107,12 @@ pipeline {
                 sh '''
                     set -e
 
-                    mkdir -p .trivy-cache .m2/repository || true
+                    mkdir -p .trivy-cache || true
 
-                    # Trivy Java analyzer membaca ~/.m2; HOME container = /tmp
-                    # pakai cache Maven lokal dari stage Build & Test (hindari 429)
+                    # Trivy Java analyzer membaca ~/.m2; HOME container = /tmp.
+                    # Arahkan ke cache Maven bersama yang persist di volume Jenkins.
                     mkdir -p /tmp/.m2
-                    ln -sfn "$PWD/.m2/repository" /tmp/.m2/repository
+                    ln -sfn "$MAVEN_LOCAL_REPO" /tmp/.m2/repository
 
                     echo "======================================"
                     echo "        TRIVY SECURITY SCAN"
@@ -120,7 +122,7 @@ pipeline {
                     trivy --version
 
                     echo "=== Local Maven cache ==="
-                    ls -ld .m2/repository /tmp/.m2/repository || true
+                    ls -ld "$MAVEN_LOCAL_REPO" /tmp/.m2/repository || true
 
                     echo "=== Trivy Scan ==="
 
