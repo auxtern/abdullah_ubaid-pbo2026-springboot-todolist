@@ -60,7 +60,9 @@ pipeline {
                     echo "=== Maven Clean Verify (Jacoco 100%) ==="
                     # verify = test + jacoco:check (instruction/branch/line/method/class = 100%)
                     # -Pproduction = Vaadin frontend production build saat package
-                    ./mvnw -B clean verify -Pproduction
+                    # repo lokal di workspace agar Trivy stage bisa reuse (hindari 429 Maven Central)
+                    ./mvnw -B clean verify -Pproduction \
+                        -Dmaven.repo.local="$PWD/.m2/repository"
 
                     echo "=== Build & Tests Passed ==="
                     ls -lh target/*.jar || true
@@ -103,7 +105,12 @@ pipeline {
                 sh '''
                     set -e
 
-                    mkdir -p .trivy-cache || true
+                    mkdir -p .trivy-cache .m2/repository || true
+
+                    # Trivy Java analyzer membaca ~/.m2; HOME container = /tmp
+                    # pakai cache Maven lokal dari stage Build & Test (hindari 429)
+                    mkdir -p /tmp/.m2
+                    ln -sfn "$PWD/.m2/repository" /tmp/.m2/repository
 
                     echo "======================================"
                     echo "        TRIVY SECURITY SCAN"
@@ -112,14 +119,19 @@ pipeline {
                     echo "=== Trivy Version ==="
                     trivy --version
 
+                    echo "=== Local Maven cache ==="
+                    ls -ld .m2/repository /tmp/.m2/repository || true
+
                     echo "=== Trivy Scan ==="
 
                     trivy fs \
                         --cache-dir .trivy-cache \
                         --scanners vuln \
                         --severity HIGH,CRITICAL \
+                        --offline-scan \
                         --skip-dirs target \
                         --skip-dirs .mvn \
+                        --skip-dirs .m2 \
                         --skip-dirs node_modules \
                         --skip-dirs .trivy-cache \
                         --format sarif \
