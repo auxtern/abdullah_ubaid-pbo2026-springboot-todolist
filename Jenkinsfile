@@ -12,6 +12,8 @@ pipeline {
     environment {
         MAVEN_OPTS = '-Xmx2g'
         JAVA_TOOL_OPTIONS = '-Dfile.encoding=UTF-8'
+        // Cache Maven persistent di volume Jenkins (hindari 429 Maven Central)
+        MAVEN_LOCAL_REPO = '/var/jenkins_home/.m2/repository'
     }
 
     stages {
@@ -40,7 +42,7 @@ pipeline {
                 docker {
                     image 'eclipse-temurin:25-jdk'
                     reuseNode true
-                    args '-u root'
+                    args '-u root -v /var/jenkins_home/.m2:/var/jenkins_home/.m2'
                 }
             }
 
@@ -52,6 +54,7 @@ pipeline {
                     java -version
 
                     chmod +x mvnw
+                    mkdir -p "$MAVEN_LOCAL_REPO"
 
                     if [ ! -f .env ]; then
                         cp .env.example .env
@@ -60,9 +63,9 @@ pipeline {
                     echo "=== Maven Clean Verify (Jacoco 100%) ==="
                     # verify = test + jacoco:check (instruction/branch/line/method/class = 100%)
                     # -Pproduction = Vaadin frontend production build saat package
-                    # repo lokal di workspace agar Trivy stage bisa reuse (hindari 429 Maven Central)
+                    # MAVEN_LOCAL_REPO = cache persistent di volume Jenkins
                     ./mvnw -B clean verify -Pproduction \
-                        -Dmaven.repo.local="$PWD/.m2/repository"
+                        -Dmaven.repo.local="$MAVEN_LOCAL_REPO"
 
                     echo "=== Build & Tests Passed ==="
                     ls -lh target/*.jar || true
@@ -97,6 +100,7 @@ pipeline {
                         --entrypoint=""
                         -e HOME=/tmp
                         -e XDG_CACHE_HOME=/tmp/.cache
+                        -v /var/jenkins_home/.m2:/var/jenkins_home/.m2
                     '''
                 }
             }
@@ -105,12 +109,10 @@ pipeline {
                 sh '''
                     set -e
 
-                    mkdir -p .trivy-cache .m2/repository || true
+                    mkdir -p .trivy-cache || true
 
-                    # Trivy Java analyzer membaca ~/.m2; HOME container = /tmp
-                    # pakai cache Maven lokal dari stage Build & Test (hindari 429)
-                    mkdir -p /tmp/.m2
-                    ln -sfn "$PWD/.m2/repository" /tmp/.m2/repository
+                    # Trivy Java analyzer membaca ~/.m2 — arahkan ke cache persistent Jenkins
+                    ln -sfn "$(dirname "$MAVEN_LOCAL_REPO")" "$HOME/.m2"
 
                     echo "======================================"
                     echo "        TRIVY SECURITY SCAN"
@@ -120,7 +122,7 @@ pipeline {
                     trivy --version
 
                     echo "=== Local Maven cache ==="
-                    ls -ld .m2/repository /tmp/.m2/repository || true
+                    ls -ld "$HOME/.m2" "$MAVEN_LOCAL_REPO" || true
 
                     echo "=== Trivy Scan ==="
 
@@ -131,7 +133,6 @@ pipeline {
                         --offline-scan \
                         --skip-dirs target \
                         --skip-dirs .mvn \
-                        --skip-dirs .m2 \
                         --skip-dirs node_modules \
                         --skip-dirs .trivy-cache \
                         --format sarif \
