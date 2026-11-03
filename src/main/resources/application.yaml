@@ -1,6 +1,6 @@
 spring:
   application:
-    name: ifs18005-springboot-todolist
+    name: abdullah_ubaid-pbo2026-springboot-todolist
   devtools:
     restart:
       enabled: true

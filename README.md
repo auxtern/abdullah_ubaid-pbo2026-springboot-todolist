@@ -1,12 +1,12 @@
-# ifs18005-springboot-todolist
+# abdullah_ubaid-pbo2026-springboot-todolist
 
 Aplikasi web Todo List berbasis **Spring Boot**, **Maven**, dan **Vaadin**, dengan arsitektur **Clean Architecture**.
 
 Data disimpan **in-memory** (belum memakai database). Port dikonfigurasi lewat `.env` (`APP_PORT`).
 
-> **Penamaan proyek mahasiswa:** `{username}-springboot-todolist`  
-> **Package:** `org.delcom.{username}springboottodolist`  
-> Contoh di repo ini memakai username `ifs18005`. Ganti sesuai username Anda.
+> **Penamaan proyek mahasiswa:** `{username}-pbo2026-springboot-todolist`  
+> **Package:** `org.delcom.{username}pbo2026springboottodolist`  
+> Contoh di repo ini memakai username `abdullah_ubaid`. Ganti sesuai username Anda.
 
 ## Prasyarat
 
@@ -16,10 +16,10 @@ Data disimpan **in-memory** (belum memakai database). Port dikonfigurasi lewat `
 ## Struktur Layer
 
 ```text
-ifs18005-springboot-todolist/
+abdullah_ubaid-pbo2026-springboot-todolist/
 ├── .env / .env.example
 ├── pom.xml
-├── src/main/java/org/delcom/ifs18005springboottodolist/
+├── src/main/java/org/delcom/abdullah_ubaidpbo2026springboottodolist/
 │   ├── App.java              # entry point (@SpringBootApplication)
 │   ├── DotEnv.java           # muat .env ke system properties
 │   ├── config/AppConfig.java # composition root Spring (@Bean)
@@ -82,7 +82,7 @@ Tanpa `-Pproduction`, `java -jar` gagal (`vaadin-dev-server not found`) karena `
 
 ```powershell
 .\mvnw.cmd clean package -Pproduction
-java -jar target\ifs18005-springboot-todolist-0.0.1-SNAPSHOT.jar
+java -jar target\abdullah_ubaid-pbo2026-springboot-todolist-0.0.1-SNAPSHOT.jar
 ```
 
 Jalankan dari root proyek agar file `.env` terbaca.
