@@ -12,7 +12,7 @@ pipeline {
     environment {
         MAVEN_OPTS = '-Xmx2g'
         JAVA_TOOL_OPTIONS = '-Dfile.encoding=UTF-8'
-        // Cache Maven persistent di volume Jenkins (hindari 429 Maven Central)
+        // Cache Maven bersama di volume Jenkins, persist antar build/job (hindari 429)
         MAVEN_LOCAL_REPO = '/var/jenkins_home/.m2/repository'
     }
 
@@ -63,7 +63,7 @@ pipeline {
                     echo "=== Maven Clean Verify (Jacoco 100%) ==="
                     # verify = test + jacoco:check (instruction/branch/line/method/class = 100%)
                     # -Pproduction = Vaadin frontend production build saat package
-                    # MAVEN_LOCAL_REPO = cache persistent di volume Jenkins
+                    # cache Maven persisten agar tidak download ulang (hindari 429 Maven Central)
                     ./mvnw -B clean verify -Pproduction \
                         -Dmaven.repo.local="$MAVEN_LOCAL_REPO"
 
@@ -111,8 +111,10 @@ pipeline {
 
                     mkdir -p .trivy-cache || true
 
-                    # Trivy Java analyzer membaca ~/.m2 — arahkan ke cache persistent Jenkins
-                    ln -sfn "$(dirname "$MAVEN_LOCAL_REPO")" "$HOME/.m2"
+                    # Trivy Java analyzer membaca ~/.m2; HOME container = /tmp.
+                    # Arahkan ke cache Maven bersama yang persist di volume Jenkins.
+                    mkdir -p /tmp/.m2
+                    ln -sfn "$MAVEN_LOCAL_REPO" /tmp/.m2/repository
 
                     echo "======================================"
                     echo "        TRIVY SECURITY SCAN"
@@ -122,7 +124,7 @@ pipeline {
                     trivy --version
 
                     echo "=== Local Maven cache ==="
-                    ls -ld "$HOME/.m2" "$MAVEN_LOCAL_REPO" || true
+                    ls -ld "$MAVEN_LOCAL_REPO" /tmp/.m2/repository || true
 
                     echo "=== Trivy Scan ==="
 
