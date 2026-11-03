@@ -188,7 +188,7 @@ pipeline {
                     echo "======================================"
 
                     apt-get update -qq
-                    apt-get install -y -qq zip unzip >/dev/null
+                    apt-get install -y -qq zip unzip git >/dev/null
 
                     rm -f latest-app.zip app.jar
 
@@ -203,8 +203,11 @@ pipeline {
                     echo "Using JAR: $JAR"
                     cp "$JAR" app.jar
 
-                    # Package: runnable JAR + template env
-                    zip -r latest-app.zip app.jar .env.example
+                    # ZIP bersih seperti hasil clone GitHub (hanya file tracked),
+                    # lalu tambahkan JAR hasil build di target/ agar deploy zip
+                    # berperilaku sama dengan deploy git.
+                    git -c safe.directory="$PWD" archive --format=zip --output=latest-app.zip HEAD
+                    zip -q latest-app.zip "$JAR"
 
                     echo "=== Application Package Created ==="
                     ls -lh latest-app.zip app.jar
