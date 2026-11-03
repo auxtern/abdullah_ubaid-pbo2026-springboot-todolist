@@ -88,7 +88,7 @@ pipeline {
         stage('Trivy Security Scan') {
             agent {
                 docker {
-                    image 'aquasec/trivy:0.74.0'
+                    image 'aquasec/trivy:0.76.1'
                     reuseNode true
 
                     args '''
